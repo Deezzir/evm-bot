@@ -1,0 +1,25 @@
+[package]
+name = "evm-bot"
+version = "0.1.0"
+authors = ["Deezzir <deezzir@gmail.com>"]
+description = "EVM Bot CLI"
+edition = "2024"
+
+[dependencies]
+alloy = { version = "0.1", features = [
+    "network",
+    "provider-http",
+    "provider-ws",
+    "rpc-types-eth",
+    "signer-local",
+    "contract",
+    "reqwest",
+] }
+
+tokio = { version = "1", features = ["full"] }
+clap = { version = "4", features = ["derive", "cargo"] }
+serde = { version = "1.0", features = ["derive"] }
+csv = "1.4"
+figlet-rs = "1.0"
+colored = "2"
+dotenv = "0.15"
