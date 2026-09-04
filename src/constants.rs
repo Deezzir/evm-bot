@@ -15,7 +15,7 @@ pub const DESCRIPTION: &str = match option_env!("CARGO_PKG_DESCRIPTION") {
 };
 
 // Commands
-pub const DEFAULT_KEYS_FILE: &str = "keys.csv";
+pub const DEFAULT_KEYS_FILE_PATH: &str = "keys.csv";
 pub const ETH_RPC_ENV_KEY: &str = "ETH_RPC_URL";
 pub const RH_RPC_ENV_KEY: &str = "RH_RPC_URL";
 pub const BNB_RPC_ENV_KEY: &str = "BNB_RPC_URL";
@@ -37,3 +37,6 @@ pub const RH_UNISWAP_UNIVERSAL_ROUTER_ADDRESS: Address =
 
 pub const BNB_PANCAKESWAP_V3_ROUTER_ADDRESS: Address =
     address!("1b81d678ffb9c0263b24a97847620c99d213eb14");
+
+// Misc
+pub const PRICE_URL: &str = "https://api.binance.com/api/v3/ticker/price";

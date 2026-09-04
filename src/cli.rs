@@ -1,10 +1,30 @@
+use std::path::PathBuf;
+
 use crate::chain::{Chain, DexProtocol, LaunchpadProtocol, TradingProtocol};
-use crate::constants::{AUTHOR, DEFAULT_KEYS_FILE, DESCRIPTION, VERSION};
+use crate::constants::{AUTHOR, DEFAULT_KEYS_FILE_PATH, DESCRIPTION, VERSION};
 use clap::{Parser, Subcommand, ValueEnum};
 use figlet_rs::FIGlet;
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    /// Generate wallets and save them to a CSV file
+    #[command[alias = "g"]]
+    Generate {
+        /// Path to the CSV file to save the generated wallets
+        file_path: PathBuf,
+        /// Generate the reserve wallet
+        #[arg(long = "reserve", short = 'r', default_value_t)]
+        reserve: bool,
+        /// Starting index of the wallets to generate
+        #[arg(long = "index", short = 'i')]
+        index: Option<usize>,
+        /// Number of wallets to generate
+        #[arg(long = "count", short = 'c', default_value_t = 0)]
+        count: usize,
+        /// Path to the file with with secret keys to convert
+        #[arg(long = "secrets_path", short = 's')]
+        secrets_path: Option<PathBuf>,
+    },
     /// Get the balance of the wallets
     #[command[alias = "b"]]
     Balance {
@@ -12,26 +32,10 @@ pub enum Commands {
         #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Table)]
         format: OutputFormat,
     },
-    /// Generate wallets and save them to a CSV file
-    #[command[alias = "g"]]
-    Generate {
-        file_path: String,
-        /// Generate the reserve wallet
-        #[arg(long = "reserve", short = 'r', default_value_t)]
-        reserve: bool,
-        /// Starting index of the wallets to generate
-        #[arg(long = "index", short = 'i', default_value_t = 0)]
-        index: usize,
-        /// Number of wallets to generate
-        #[arg(long = "count", short = 'c', default_value_t = 1)]
-        count: usize,
-        /// path to the file with with secret keys to convert
-        #[arg(long = "secrets", short = 's')]
-        secrets_path: Option<String>,
-    },
     /// Get the token balance of the wallets
     #[command[alias = "tb"]]
     TokenBalance {
+        /// Token mint address
         mint: String,
         /// Format of the token balance output
         #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Table)]
@@ -62,17 +66,91 @@ pub enum Commands {
         receiver: String,
     },
     /// Buy a token through a DEX or launchpad
-    Buy {
-        /// Token contract address
-        token: String,
+    BuyTokenOnce {
         /// Native-token amount to spend
         amount: f64,
+        /// Token contract address
+        token: String,
+        /// Index of the buyer wallet
+        index: usize,
         /// Trading venue to use
         #[arg(long, value_enum)]
         venue: TradingVenueArg,
-        /// Index of the buyer wallet
-        #[arg(long = "index", short = 'i', default_value_t = 0)]
+    },
+    SellTokenOnce {
+        /// Native-token amount to receive
+        amount: f64,
+        /// Token contract address
+        token: String,
+        /// Index of the seller wallet
         index: usize,
+        /// Trading venue to use
+        #[arg(long, value_enum)]
+        venue: TradingVenueArg,
+    },
+    /// Fund the wallets with collateral using the provided wallet
+    Fund {
+        /// Amount of collateral to fund each wallet with
+        amount: f64,
+        /// Index of the wallet to use for funding
+        sender_index: usize,
+        /// Starting from the provided index
+        #[arg(long = "from", short = 'f')]
+        from: Option<usize>,
+        /// Ending at the provided index (exclusive)
+        #[arg(long = "to", short = 't')]
+        to: Option<usize>,
+        /// Specify the list of wallet indexes to fund (overrides `from` and `to`)
+        #[arg(
+            long = "indexes",
+            short = 'i',
+            value_delimiter = ',',
+            conflicts_with_all = ["from", "to"]
+        )]
+        indexes: Option<Vec<usize>>,
+        /// Fund randomly using <amount> argument as a mean value
+        #[arg(long = "random", short = 'r')]
+        random: Option<bool>,
+    },
+    /// Collect all the collateral from the wallets to the provided address
+    Collect {
+        /// Public address of the receiver
+        receiver: String,
+        /// Starting from the provided index
+        #[arg(long = "from", short = 'f')]
+        from: Option<usize>,
+        /// Ending at the provided index (exclusive)
+        #[arg(long = "to", short = 't')]
+        to: Option<usize>,
+        /// Specify the list of wallet indexes to collect from (overrides `from` and `to`)
+        #[arg(
+            long = "indexes",
+            short = 'i',
+            value_delimiter = ',',
+            conflicts_with_all = ["from", "to"]
+        )]
+        indexes: Option<Vec<usize>>,
+    },
+    /// Collect all the tokens from the wallets to the provided address
+    CollectTokens {
+        /// Token mint address
+        mint: String,
+        /// Public address of the receiver
+        receiver: String,
+        /// Starting from the provided index
+        #[arg(long = "from", short = 'f')]
+        from: Option<usize>,
+        /// Ending at the provided index (exclusive)
+        #[arg(long = "to", short = 't')]
+        to: Option<usize>,
+        /// Specify the list of wallet indexes to collect from (overrides `from` and `to`)
+        #[arg(
+            long = "indexes",
+            short = 'i',
+            value_delimiter = ',',
+            conflicts_with_all = ["from", "to"]
+        )]
+        indexes: Option<Vec<usize>>,
     },
     /// Create a token on a launchpad
     CreateToken {
@@ -102,14 +180,14 @@ pub enum Commands {
     author = AUTHOR,
     before_help = get_banner()
 )]
-pub struct CLI {
+pub struct Cli {
     /// Blockchain to use
     #[arg(long = "chain", short = 'c', value_enum, default_value_t = Chain::Ethereum)]
     pub chain: Chain,
 
     /// Path to the CSV file with the wallets
-    #[arg(long = "keys", short = 'k', default_value_t = DEFAULT_KEYS_FILE.to_string())]
-    pub keys: String,
+    #[arg(long = "keys_path", short = 'k', default_value = DEFAULT_KEYS_FILE_PATH)]
+    pub keys_path: PathBuf,
 
     /// Disable colored output
     #[arg(long = "no-colors", default_value_t)]

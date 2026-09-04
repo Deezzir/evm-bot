@@ -6,6 +6,14 @@ use clap::ValueEnum;
 use crate::constants;
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DexProtocol {
+    #[value(name = "uniswapv3")]
+    UniswapV3,
+    #[value(name = "pancakeswapv3")]
+    PancakeSwapV3,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Chain {
     #[value(name = "ethereum", alias = "eth")]
     Ethereum,
@@ -15,12 +23,10 @@ pub enum Chain {
     Bnb,
 }
 
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DexProtocol {
-    #[value(name = "uniswapv3")]
-    UniswapV3,
-    #[value(name = "pancakeswapv3")]
-    PancakeSwapV3,
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CollateralToken {
+    Eth,
+    Bnb,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -171,6 +177,13 @@ impl Chain {
             }
         }
     }
+
+    pub fn collateral(self) -> Result<CollateralToken, UnsupportedDeployment> {
+        match self {
+            Self::Ethereum | Self::Robinhood => Ok(CollateralToken::Eth),
+            Self::Bnb => Ok(CollateralToken::Bnb),
+        }
+    }
 }
 
 impl DexProtocol {
@@ -187,6 +200,15 @@ impl LaunchpadProtocol {
         match self {
             Self::FourMeme => "Four.meme",
             Self::PonsFamily => "Pons Family",
+        }
+    }
+}
+
+impl CollateralToken {
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Bnb => "BNB",
+            Self::Eth => "ETH",
         }
     }
 }
