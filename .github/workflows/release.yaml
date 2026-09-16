@@ -170,7 +170,7 @@ jobs:
                   CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
                   VERSION: ${{ needs.checks.outputs.version }}
               run: |
-                  if cargo info "evm-bot@$VERSION" >/dev/null 2>&1; then
+                  if cargo info --registry crates-io "evm-bot@$VERSION" >/dev/null 2>&1; then
                     echo "Crate evm-bot@$VERSION already exists."
                   else
                     cargo publish --locked
