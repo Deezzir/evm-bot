@@ -1623,7 +1623,7 @@ dependencies = [
 
 [[package]]
 name = "evm-bot"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "alloy",
  "anyhow",
@@ -1638,6 +1638,7 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
+ "tempfile",
  "tokio",
 ]
 

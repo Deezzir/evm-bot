@@ -1,5 +1,9 @@
 # EVM Bot
 
+[![crates.io](https://img.shields.io/crates/v/evm-bot.svg)](https://crates.io/crates/evm-bot)
+
+> ⚠️ PROJECT IS STILL IN EARLY DEVELOPMENT
+
 ## Quick Start
 
 1. Open the terminal and clone the repo
@@ -60,3 +64,7 @@
     ```
 
 > ⚠️ Help is available for each command. Use `bot <command> -h` to see the options for that command.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and contribution guidelines.

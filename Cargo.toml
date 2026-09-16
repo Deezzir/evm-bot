@@ -1,9 +1,23 @@
 [package]
 name = "evm-bot"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Deezzir <deezzir@gmail.com>"]
 description = "EVM Bot CLI"
 edition = "2024"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/Deezzir/evm-bot"
+
+[package.metadata.deb]
+maintainer = "Deezzir <deezzir@gmail.com>"
+section = "utility"
+priority = "optional"
+assets = [
+    ["target/release/evm-bot", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/evm-bot/README.md", "644"],
+    ["CONTRIBUTING.md", "usr/share/doc/evm-bot/CONTRIBUTING.md", "644"],
+    ["LICENSE", "usr/share/doc/evm-bot/LICENSE", "644"],
+]
 
 [dependencies]
 alloy = { version = "0.1", features = [
@@ -29,3 +43,6 @@ serde_json = "1.0.151"
 reqwest = { version = "0.13.4", features = ["json", "query"] }
 num-format = "0.4.4"
 futures = "0.3.34"
+
+[dev-dependencies]
+tempfile = "3"

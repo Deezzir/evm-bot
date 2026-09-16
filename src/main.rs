@@ -1,12 +1,8 @@
 mod chain;
 mod cli;
 mod commands;
-mod common;
-mod constants;
 mod price;
-mod trade;
 mod venue;
-mod wallet;
 
 use crate::commands::{
     balance, buy_token_once, collect, collect_tokens, create_token, fund, generate,
@@ -16,6 +12,7 @@ use alloy::providers::{Provider, ProviderBuilder, ReqwestProvider};
 use anyhow::{Context as _, Ok, Result};
 use clap::Parser;
 use cli::{Cli, Commands};
+use evm_bot::{common, constants, trade, wallet};
 use reqwest::Url;
 use std::{str::FromStr, time::Duration};
 

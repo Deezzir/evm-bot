@@ -198,11 +198,25 @@ pub fn write_wallets_to_csv(path: impl AsRef<Path>, wallets: &[Wallet]) -> Resul
             .map(|metadata| metadata.len() == 0)
             .unwrap_or(false);
 
-    let file = OpenOptions::new()
-        .create(true)
-        .append(true)
+    let mut options = OpenOptions::new();
+    options.create(true).append(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+
+        options.mode(0o600);
+    }
+    let file = options
         .open(path)
         .with_context(|| format!("failed to open or create {}", path.display()))?;
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+
+        file.set_permissions(std::fs::Permissions::from_mode(0o600))
+            .with_context(|| format!("failed to secure {}", path.display()))?;
+    }
 
     let mut writer: csv::Writer<File> = csv::Writer::from_writer(file);
     let date = chrono::Local::now().format("%Y-%m-%d").to_string();
