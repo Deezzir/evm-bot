@@ -52,7 +52,7 @@ jobs:
                   mv "$generated" "dist/$package"
                   (cd dist && sha256sum "$package" > "$package.sha256")
             - name: Upload Linux package
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: linux-${{ matrix.arch }}
                   path: dist/*
@@ -99,7 +99,7 @@ jobs:
                   tar -C stage -czf "dist/$archive" evm-bot README.md CONTRIBUTING.md LICENSE
                   (cd dist && shasum -a 256 "$archive" > "$archive.sha256")
             - name: Upload macOS archive
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: macos-${{ matrix.arch }}
                   path: dist/*
@@ -150,7 +150,7 @@ jobs:
                   $hash = (Get-FileHash "dist/$archive" -Algorithm SHA256).Hash.ToLowerInvariant()
                   "$hash  $archive" | Out-File "dist/$archive.sha256" -Encoding ascii
             - name: Upload Windows archive
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: windows-${{ matrix.arch }}
                   path: dist/*
@@ -186,7 +186,7 @@ jobs:
             - name: Check out repository
               uses: actions/checkout@v7.0.1
             - name: Download release assets
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   path: dist
                   merge-multiple: true
