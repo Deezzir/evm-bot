@@ -1,0 +1,73 @@
+name: Check
+
+on:
+    pull_request:
+        branches: [main]
+    workflow_call:
+        outputs:
+            version:
+                description: Validated package version
+                value: ${{ jobs.check.outputs.version }}
+
+permissions:
+    contents: read
+
+jobs:
+    check:
+        name: Checks
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v7.0.1
+              with:
+                  fetch-depth: 0
+            - name: Set up Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  components: clippy, rustfmt
+            - name: Cache Rust build
+              uses: Swatinem/rust-cache@v2
+            - name: Validate version bump
+              id: version
+              env:
+                  BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+              run: |
+                  set -euo pipefail
+
+                  if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+                    BASE_SHA=$(git rev-parse HEAD^)
+                  fi
+
+                  version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "evm-bot") | .version')
+                  base_dir=$(mktemp -d)
+                  git worktree add --detach "$base_dir" "$BASE_SHA"
+                  base_version=$(cargo metadata --manifest-path "$base_dir/Cargo.toml" --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "evm-bot") | .version')
+                  git worktree remove "$base_dir"
+
+                  if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+                    echo "Cargo.toml version must be a stable major.minor.patch version." >&2
+                    exit 1
+                  fi
+                  if ! dpkg --compare-versions "$version" gt "$base_version"; then
+                    echo "Bump Cargo.toml version above $base_version before merging." >&2
+                    exit 1
+                  fi
+                  if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]] && git tag --list "v$version" | grep -q .; then
+                    echo "Tag v$version already exists. Choose a new version." >&2
+                    exit 1
+                  fi
+
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  echo "Release version: $base_version -> $version"
+            - name: Check formatting
+              run: cargo fmt --all -- --check
+            - name: Check compilation
+              run: cargo check --locked
+            - name: Run Clippy
+              run: cargo clippy --locked --all-targets -- -D warnings -A dead-code
+            - name: Run tests
+              run: cargo test --locked
+            - name: Check package
+              run: cargo package --locked
