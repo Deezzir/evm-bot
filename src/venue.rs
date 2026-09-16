@@ -1,8 +1,6 @@
-use std::{error::Error, future::Future};
-
-use alloy::primitives::{Address, B256, U256};
-
 use crate::chain::{DexDeployment, LaunchpadDeployment};
+use alloy::primitives::{Address, B256, U256};
+use std::{error::Error, future::Future};
 
 #[derive(Debug, Clone)]
 pub struct SwapRequest {

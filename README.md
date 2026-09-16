@@ -22,6 +22,11 @@
     ETH_RPC_URL=
     RH_RPC_URL=
     BNB_RPC_URL=
+    BASE_RPC_URL=
+    INK_RPC_URL=
+    HYPER_RPC_URL=
+    ARC_RPC_URL=
+    POLYGON_RPC_URL=
     ```
 
 4. Run the project
@@ -47,7 +52,7 @@
       help            Print this message or the help of the given subcommand(s)
     
     Options:
-      -c, --chain <CHAIN>  Blockchain to use [default: ethereum] [possible values: ethereum, robinhood, bnb]
+    -c, --chain <CHAIN>  Blockchain to use [default: ethereum] [possible values: ethereum, robinhood, bnb, base, ink, hyper, arc, polygon]
       -k, --keys <KEYS>    Path to the CSV file with the wallets [default: keys.csv]
           --no-colors      Disable colored output
       -h, --help           Print help

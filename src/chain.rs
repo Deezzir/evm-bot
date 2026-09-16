@@ -1,9 +1,7 @@
-use std::{error::Error, fmt};
-
-use alloy::primitives::Address;
-use clap::ValueEnum;
-
 use crate::constants;
+use alloy::primitives::Address;
+use anyhow::{Result, bail};
+use clap::ValueEnum;
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DexProtocol {
@@ -21,12 +19,25 @@ pub enum Chain {
     Robinhood,
     #[value(name = "bnb", alias = "bnb")]
     Bnb,
+    #[value(name = "base")]
+    Base,
+    #[value(name = "ink")]
+    Ink,
+    #[value(name = "hyper", alias = "hyperliquid")]
+    Hyper,
+    #[value(name = "arc")]
+    Arc,
+    #[value(name = "polygon", alias = "pol")]
+    Polygon,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CollateralToken {
     Eth,
     Bnb,
+    Hype,
+    Usdc,
+    Pol,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -76,30 +87,17 @@ pub enum TradingDeployment {
     Launchpad(LaunchpadDeployment),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct UnsupportedDeployment {
-    pub chain: Chain,
-    pub protocol: &'static str,
-}
-
-impl fmt::Display for UnsupportedDeployment {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            formatter,
-            "{} is not supported on {:?}",
-            self.protocol, self.chain
-        )
-    }
-}
-
-impl Error for UnsupportedDeployment {}
-
 impl Chain {
     pub const fn config(self) -> ChainConfig {
         let (chain_id, rpc_env_key) = match self {
             Self::Ethereum => (constants::ETH_CHAIN_ID, constants::ETH_RPC_ENV_KEY),
             Self::Bnb => (constants::BNB_CHAIN_ID, constants::BNB_RPC_ENV_KEY),
             Self::Robinhood => (constants::RH_CHAIN_ID, constants::RH_RPC_ENV_KEY),
+            Self::Base => (constants::BASE_CHAIN_ID, constants::BASE_RPC_ENV_KEY),
+            Self::Ink => (constants::INK_CHAIN_ID, constants::INK_RPC_ENV_KEY),
+            Self::Hyper => (constants::HYPER_CHAIN_ID, constants::HYPER_RPC_ENV_KEY),
+            Self::Arc => (constants::ARC_CHAIN_ID, constants::ARC_RPC_ENV_KEY),
+            Self::Polygon => (constants::POLYGON_CHAIN_ID, constants::POLYGON_RPC_ENV_KEY),
         };
 
         ChainConfig {
@@ -110,7 +108,7 @@ impl Chain {
         }
     }
 
-    pub fn dex(self, protocol: DexProtocol) -> Result<DexDeployment, UnsupportedDeployment> {
+    pub fn dex(self, protocol: DexProtocol) -> Result<DexDeployment> {
         let (router_kind, router, permit2) = match (self, protocol) {
             (Self::Ethereum, DexProtocol::UniswapV3) => (
                 RouterKind::UniversalRouter,
@@ -133,10 +131,7 @@ impl Chain {
                 None,
             ),
             _ => {
-                return Err(UnsupportedDeployment {
-                    chain: self,
-                    protocol: protocol.name(),
-                });
+                bail!("{} is not supported on {:?}", protocol.name(), self);
             }
         };
 
@@ -149,27 +144,18 @@ impl Chain {
         })
     }
 
-    pub fn launchpad(
-        self,
-        protocol: LaunchpadProtocol,
-    ) -> Result<LaunchpadDeployment, UnsupportedDeployment> {
+    pub fn launchpad(self, protocol: LaunchpadProtocol) -> Result<LaunchpadDeployment> {
         match (self, protocol) {
             (Self::Bnb, LaunchpadProtocol::FourMeme)
             | (Self::Robinhood, LaunchpadProtocol::PonsFamily) => Ok(LaunchpadDeployment {
                 chain: self,
                 protocol,
             }),
-            _ => Err(UnsupportedDeployment {
-                chain: self,
-                protocol: protocol.name(),
-            }),
+            _ => bail!("{} is not supported on {:?}", protocol.name(), self),
         }
     }
 
-    pub fn trading(
-        self,
-        protocol: TradingProtocol,
-    ) -> Result<TradingDeployment, UnsupportedDeployment> {
+    pub fn trading(self, protocol: TradingProtocol) -> Result<TradingDeployment> {
         match protocol {
             TradingProtocol::Dex(protocol) => self.dex(protocol).map(TradingDeployment::Dex),
             TradingProtocol::Launchpad(protocol) => {
@@ -178,10 +164,13 @@ impl Chain {
         }
     }
 
-    pub fn collateral(self) -> Result<CollateralToken, UnsupportedDeployment> {
+    pub fn collateral(self) -> Result<CollateralToken> {
         match self {
-            Self::Ethereum | Self::Robinhood => Ok(CollateralToken::Eth),
+            Self::Ethereum | Self::Robinhood | Self::Base | Self::Ink => Ok(CollateralToken::Eth),
             Self::Bnb => Ok(CollateralToken::Bnb),
+            Self::Hyper => Ok(CollateralToken::Hype),
+            Self::Arc => Ok(CollateralToken::Usdc),
+            Self::Polygon => Ok(CollateralToken::Pol),
         }
     }
 }
@@ -209,6 +198,9 @@ impl CollateralToken {
         match self {
             Self::Bnb => "BNB",
             Self::Eth => "ETH",
+            Self::Hype => "HYPE",
+            Self::Usdc => "USDC",
+            Self::Pol => "POL",
         }
     }
 }

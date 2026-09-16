@@ -1,9 +1,8 @@
-use std::path::PathBuf;
-
 use crate::chain::{Chain, DexProtocol, LaunchpadProtocol, TradingProtocol};
 use crate::constants::{AUTHOR, DEFAULT_KEYS_FILE_PATH, DESCRIPTION, VERSION};
 use clap::{Parser, Subcommand, ValueEnum};
 use figlet_rs::FIGlet;
+use std::path::PathBuf;
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
@@ -45,12 +44,11 @@ pub enum Commands {
     #[command[alias = "tr"]]
     Transfer {
         /// The amount to transfer
-        amount: f64,
-        /// The index of the sender wallet
-        #[arg(long = "index", short = 'i', default_value_t = 0)]
-        index: usize,
+        amount: String,
         /// The receiver public address
         receiver: String,
+        /// The index of the sender wallet
+        sender_index: usize,
     },
     /// Transfer token from the specified wallet to the receiver
     #[command[alias = "tt"]]
@@ -58,12 +56,11 @@ pub enum Commands {
         /// The token mint address
         mint: String,
         /// The amount to transfer
-        amount: f64,
-        /// The index of the sender wallet
-        #[arg(long = "index", short = 'i', default_value_t = 0)]
-        index: usize,
+        amount: String,
         /// The receiver public address
         receiver: String,
+        /// The index of the sender wallet
+        sender_index: usize,
     },
     /// Buy a token through a DEX or launchpad
     BuyTokenOnce {
