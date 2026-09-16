@@ -1,6 +1,6 @@
 [package]
 name = "evm-bot"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Deezzir <deezzir@gmail.com>"]
 description = "EVM Bot CLI"
 edition = "2024"
