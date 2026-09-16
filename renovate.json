@@ -2,5 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "automerge": false,
+  "bumpVersions": [
+    {
+      "filePatterns": ["Cargo.toml", "Cargo.lock"],
+      "matchStrings": [
+        "name\\s*=\\s*\"evm-bot\"\\s+version\\s*=\\s*\"(?<version>[^\"]+)\""
+      ],
+      "bumpType": "patch"
+    }
   ]
 }
